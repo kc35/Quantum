@@ -8,6 +8,19 @@ service = QiskitRuntimeService(channel="ibm_quantum", token="<My_IBM_Quantum_Tok
 3. execute cannot imported anymore and has been changed to "transpile" library. 
 4. Qiskit.tools in not directly installed with Qiskit so you pip install Qiskit[tools]
 5. Do Not downgrade to older versions as Terra is not supported and will add unnecessary depedencies. 
+6. Also since execute function has been removed from older versions than 1.0.0, use backend.run and transpile in that place for example
+
+backend = Aer.get_backend('statevector_simulator') //This is the initial code 
+    job = transpile(circ, backend)
+    result = job.result()
+    output = result.get_statevector(circ, decimals=5)
+
+ backend = Aer.get_backend('statevector_simulator') //This is the code with the backend.run fix
+    circ_ = transpile(circ, backend)
+    job = backend.run(circ_)
+    result = job.result()
+    output = result.get_statevector(circ, decimals=5)
+
 
 
 
