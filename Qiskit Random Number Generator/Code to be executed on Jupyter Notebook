@@ -36,8 +36,9 @@ def QRandom(a, b):
     for i in range(qubits):
         circ.measure(q[i], c0[i])
 
-    backend = Aer.get_backend('statevector_simulator')
-    job = transpile(circ, backend)
+     backend = Aer.get_backend('statevector_simulator')
+    circ_ = transpile(circ, backend)
+    job = backend.run(circ_)
     result = job.result()
     output = result.get_statevector(circ, decimals=5)
 
