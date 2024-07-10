@@ -1,0 +1,63 @@
+%matplotlib inline
+from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, transpile
+from qiskit_aer import Aer
+from qiskit.compiler import transpile, assemble
+from qiskit.tools.jupyter import *
+from qiskit.visualization import plot_state_city
+import matplotlib.pyplot as plt
+import numpy as np
+from qiskit_ibm_runtime import QiskitRuntimeService
+service = QiskitRuntimeService(channel="ibm_quantum", token="<74477f34c7715c5debc890a21537d74f647489e1e7392547b34749b2d62391f6d97a7055a6844d499011d8149e693f0e2e84c94a138c9df174f662407aa46fdb>")
+print("All libraries imported successfully!")
+
+def real_map(value, leftMin, leftMax, rightMin, rightMax):
+    # Calculate the spans of the input and output ranges
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+
+    # Scale the value to the 0-1 range
+    valueScaled = (value - leftMin) / leftSpan
+
+    # Map the value to the output range
+    mappedValue = rightMin + (valueScaled * rightSpan)
+
+    return mappedValue
+
+def QRandom(a, b):
+    qubits = 3  # Set the number of qubits to 3
+    q = QuantumRegister(qubits, 'q')
+    circ = QuantumCircuit(q)
+    c0 = ClassicalRegister(qubits, 'c0')
+    circ.add_register(c0)
+
+    for i in range(qubits):
+        circ.h(q[i])
+
+    for i in range(qubits):
+        circ.measure(q[i], c0[i])
+
+    backend = Aer.get_backend('statevector_simulator')
+    job = transpile(circ, backend)
+    result = job.result()
+    output = result.get_statevector(circ, decimals=5)
+
+    n1 = 0
+    n2 = 0
+    n3 = 0
+    for i in range(len(output)):
+        if abs(output[i]) != 0:
+            n1 = i
+            n2 = np.real(output[i])
+            n3 = np.imag(output[i])
+
+    y = real_map(n1 + n2 + n3, -qubits, len(output) - 1 + qubits, a, b)
+    plot_state_city(output)
+    return y
+
+x = []
+for i in range(100):
+    x.append(QRandom(0, 100))
+    print(str(i) + ": " + str(QRandom(0, 100)))
+
+plt.plot(x)
+plt.show()
