@@ -1,0 +1,98 @@
+//B92 is a simplified version of B84 protocol.
+
+import numpy as np
+# Importing standard Qiskit libraries
+from qiskit import QuantumCircuit, transpile
+from qiskit_aer import Aer
+from copy import deepcopy
+
+from random import getrandbits
+
+print("Libraries imported successfully!")
+
+def generate_alice_bits(length):
+    alice_bits = []
+    for i in range(length):
+        alice_bits.append(getrandbits(1))
+    return alice_bits
+N = 500
+alice_bits = generate_alice_bits(N)
+
+def generate_bob_bits(length):
+    bob_bits = []
+    for i in range(length):
+        bob_bits.append(getrandbits(1))
+    return bob_bits
+bob_bits = generate_bob_bits(N)
+
+def measure(encoded_qubits, bob_bits):
+    bob_measurements= []
+    for i in range(N):
+        qc = deepcopy(encoded_qubits[i]) 
+
+        if bob_bits[i] == 0:
+            qc.measure(0,0)
+        elif bob_bits[i] == 1:
+            qc.h(0)
+            qc.measure(0,0)
+
+        backend = Aer.get_backend('qasm_simulator')
+        circ_ = transpile(qc, backend) 
+        job = backend.run(circ_)
+        results = job.result()
+        counts = results.get_counts()
+        measured_bit = max(counts, key=counts.get)
+
+        bob_measurements.append(measured_bit)
+    return bob_measurements
+bob_measurements = measure(encoded_qubits, bob_bits)
+
+def find_bob_ones(bob_bits):
+    bob_one_indices = []
+    for i in range(len(bob_measurements)):
+        if bob_measurements[i]=='1':
+            bob_one_indices.append(i)
+    return bob_one_indices
+bob_one_indices = find_bob_ones(bob_measurements)
+len(bob_one_indices)
+
+def generate_alice_key(alice_bits, bob_one_indices):
+    alice_key = []
+    for index in bob_one_indices:
+        alice_key.append(1-alice_bits[index])
+    return alice_key
+def generate_bob_key(bob_baits, bob_one_indices):
+    bob_key = []
+    for index in bob_one_indices:
+        bob_key.append(bob_bits[index])
+    return bob_key
+alice_key = generate_alice_key(alice_bits, bob_one_indices)
+bob_key = generate_bob_key(bob_bits, bob_one_indices)
+
+import binascii
+
+def encrypt_message(unencrypted_string, key):
+    bits = bin(int(binascii.hexlify(unencrypted_string.encode('utf-8', 'surrogatepass')), 16))[2:]
+    bitstring = bits.zfill(8 * ((len(bits) + 7) // 8))
+    encrypted_string = ""
+    for i in range(len(bitstring)):
+        encrypted_string += str( (int(bitstring[i])^ int(key[i])) )
+    return encrypted_string
+    
+def decrypt_message(encrypted_bits, key):
+    unencrypted_bits = ""
+    for i in range(len(encrypted_bits)):
+        unencrypted_bits += str( (int(encrypted_bits[i])^ int(key[i])) )
+    i = int(unencrypted_bits, 2)
+    hex_string = '%x' % i
+    n = len(hex_string)
+    bits = binascii.unhexlify(hex_string.zfill(n + (n & 1)))
+    unencrypted_string = bits.decode('utf-8', 'surrogatepass')
+    return unencrypted_string
+
+message = "Test Message"
+print("Original Messge:", message)
+encrypted_message = encrypt_message(message, alice_key)
+print("Encrypted message:", encrypted_message)
+decrypted_message = decrypt_message(encrypted_message, bob_key)
+print("Decrypted message:", decrypted_message)
