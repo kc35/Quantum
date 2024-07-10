@@ -1,1 +1,12 @@
+//Qiskit has upgraded and changed a lot of its tools and libraries, so here are the changes
+//Qiskit Aer is changed to "From qiskit.aer import Aer"
+//IBMQ is changed to the method using the IBM Quantum Token and ibm_runtime_service
+
+from qiskit_ibm_runtime import QiskitRuntimeService
+service = QiskitRuntimeService(channel="ibm_quantum", token="<My_IBM_Quantum_Token>")
+
+execute cannot imported anymore and has been changed to "transpile" library. 
+
+
+
 
