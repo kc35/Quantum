@@ -7,7 +7,7 @@ service = QiskitRuntimeService(channel="ibm_quantum", token="<My_IBM_Quantum_Tok
 
 3. execute cannot imported anymore and has been changed to "transpile" library. 
 4. Qiskit.tools in not directly installed with Qiskit so you pip install Qiskit[tools]
-5. downgrade qiskit to 0.20.0 to get ibmq and other libraries as well using "pip install qiskit==0.20.0"
+5. Do Not downgrade to older versions as Terra is not supported and will add unnecessary depedencies. 
 
 
 
